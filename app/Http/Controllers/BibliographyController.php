@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bibliography;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBibliographyRequest;
 
 class BibliographyController extends Controller
 {
@@ -18,18 +19,9 @@ class BibliographyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBibliographyRequest  $request)
     {
-        $validated = $request->validate([
-            'key' => 'required|string|unique:bibliographies,key',
-            'item_type' => 'required|string',
-            'publication_year' => 'required|integer',
-            'author' => 'required|string',
-            'title' => 'required|string',
-            'publication_title' => 'required|string',
-            'date' => 'required|date',
-            'date_added' => 'required|date',
-        ]);
+        $validated = $request->validated();
 
         $biblio = Bibliography::create($validated);
 
