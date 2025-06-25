@@ -15,11 +15,11 @@ class ExcelImportController extends Controller
         $request->validated();
 
         $import = new BibliographyImport();
-        Excel::import($import, $request->file('excel_file')); // Note: we use import() here instead of toCollection()
+        Excel::import($import, $request->file('excel_file'));
 
         return response()->json([
             'message' => 'File parsed successfully',
-            'bibliographies' => $import->getMappedData(),
+            'bibliographies' => $import->getMappedData()->all(),
         ]);
     }
 }

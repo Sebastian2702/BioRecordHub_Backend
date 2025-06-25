@@ -28,6 +28,21 @@ class BibliographyController extends Controller
         return response()->json($biblio, 201);
     }
 
+    public function storeMultiple(Request $request)
+    {
+        $data = $request->validate([
+            'bibliographies' => 'required|array',
+            'bibliographies.*' => 'array',
+        ]);
+
+        $inserted = Bibliography::insert($data['bibliographies']);
+
+        return response()->json([
+            'success' => $inserted,
+            'count' => count($data['bibliographies']),
+        ], 201);
+    }
+
     /**
      * Display the specified resource.
      */

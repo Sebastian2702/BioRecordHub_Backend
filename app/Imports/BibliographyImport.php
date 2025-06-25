@@ -4,20 +4,13 @@ namespace App\Imports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use App\Models\Bibliography;
 
 class BibliographyImport implements ToCollection
 {
-    /**
-     * @param Collection $rows
-     *
-     * @return array
-     */
-    public $mappedData;
+    protected $mappedData;
 
     public function collection(Collection $rows)
     {
-        // Define your headers in the expected order
         $headers = [
             'key', 'item_type', 'publication_year', 'author', 'title',
             'publication_title', 'isbn', 'issn', 'doi', 'url',
@@ -29,10 +22,15 @@ class BibliographyImport implements ToCollection
             'call_number', 'extra', 'notes',
         ];
 
-        // Skip the first row (headers from the Excel file)
         $this->mappedData = $rows->skip(1)->map(function ($row) use ($headers) {
-            return array_combine($headers, $row->toArray());
-        });
+            $rowArray = $row->toArray();
+
+            if (count($rowArray) !== count($headers)) {
+                return null;
+            }
+
+            return array_combine($headers, $rowArray);
+        })->filter()->values();
     }
 
     public function getMappedData()
@@ -40,4 +38,3 @@ class BibliographyImport implements ToCollection
         return $this->mappedData;
     }
 }
-
