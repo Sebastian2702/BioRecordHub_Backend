@@ -33,7 +33,7 @@ class StoreBibliographyRequest extends FormRequest
             'doi' => 'nullable|string|max:255',
             'url' => 'nullable|url',
             'abstract_note' => 'nullable|string',
-            'date' => 'required|date',
+            'date' => 'required|digits:4',
             'date_added' => 'nullable|date',
             'date_modified' => 'nullable|date',
             'access_date' => 'nullable|date',
