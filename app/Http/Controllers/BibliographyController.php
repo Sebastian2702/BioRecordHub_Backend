@@ -48,7 +48,8 @@ class BibliographyController extends Controller
      */
     public function show($id)
     {
-        $biblio = Bibliography::find($id);
+        $biblio = Bibliography::with('nomenclatures')->find($id);
+
 
         if (!$biblio) {
             return response()->json(['message' => 'Not found'], 404);
@@ -87,5 +88,23 @@ class BibliographyController extends Controller
         $biblio->delete();
 
         return response()->json(['message' => 'Deleted successfully'], 200);
+    }
+
+    public function destroyNomenclatureReference(string $bibliographyId, string $nomenclatureId)
+    {
+        $biblio = Bibliography::find($bibliographyId);
+
+        if (!$biblio) {
+            return response()->json(['message' => 'Bibliography not found'], 404);
+        }
+
+        // Check if the relation exists before trying to detach
+        if (!$biblio->nomenclatures()->where('nomenclature_id', $nomenclatureId)->exists()) {
+            return response()->json(['message' => 'Nomenclature not associated with this bibliography'], 404);
+        }
+
+        $biblio->nomenclatures()->detach($nomenclatureId);
+
+        return response()->json(['message' => 'Nomenclature reference removed successfully'], 200);
     }
 }
