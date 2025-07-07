@@ -45,6 +45,30 @@ class NomenclatureController extends Controller
         return response()->json($nomenclature);
     }
 
+    public function update($id, StoreNomenclatureRequest $request)
+    {
+        // Validate the request
+        $validated = $request->validated();
+        $nomenclature = Nomenclature::find($id);
+
+        // Extract bibliography IDs from the request
+        $newBibliographyIds = $validated['bibliographies'] ?? [];
+        unset($validated['bibliographies']);
+
+        // Update the nomenclature fields (excluding bibliographies)
+        $nomenclature->update($validated);
+
+        // Sync the pivot table with new IDs
+        // This will automatically add new ones and remove unselected ones
+        $nomenclature->bibliographies()->sync($newBibliographyIds);
+
+        return response()->json([
+            'message' => 'Nomenclature updated successfully.',
+            'nomenclature' => $nomenclature->load('bibliographies') // include the relation
+        ]);
+
+    }
+
     public function destroyBibliographyReference($nomenclatureId, $bibliographyId)
     {
         $bibliography = Bibliography::find($bibliographyId);
