@@ -34,6 +34,37 @@ class NomenclatureController extends Controller
         return response()->json($nomenclature->load('bibliographies'), 201);
     }
 
+    public function storeMultiple(Request $request)
+    {
+        $validated = $request->validate([
+            'nomenclatures' => 'required|array',
+        ]);
+
+        $createdNomenclatures = [];
+
+        foreach ($validated['nomenclatures'] as $entry) {
+            // Extract and remove bibliography IDs
+            $bibliographyIds = $entry['bibliography_ids'] ?? [];
+            unset($entry['bibliography_ids']);
+
+            // Create nomenclature
+            $nomenclature = Nomenclature::create($entry);
+
+            // Attach bibliographies
+            if (!empty($bibliographyIds)) {
+                $nomenclature->bibliographies()->sync($bibliographyIds);
+            }
+
+            // Append loaded nomenclature (with bibliographies) to result
+            $createdNomenclatures[] = $nomenclature->load('bibliographies');
+        }
+
+        return response()->json([
+            'inserted_count' => count($createdNomenclatures),
+            'data' => $createdNomenclatures,
+        ], 201);
+    }
+
     public function show($id)
     {
         $nomenclature = Nomenclature::with('bibliographies')->find($id);

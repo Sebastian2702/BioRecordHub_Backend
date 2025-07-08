@@ -23,10 +23,16 @@ class BibliographyController extends Controller
     {
         $validated = $request->validated();
 
-        $biblio = Bibliography::create($validated);
-
+        if (!Bibliography::where('key', $validated['key'])->exists()) {
+            $biblio = Bibliography::create($validated);
+        }
+        else {
+            return response()->json(['message' => 'Bibliography with this key already exists'], 422);
+        }
         return response()->json($biblio, 201);
     }
+
+
 
     public function storeMultiple(Request $request)
     {
@@ -35,11 +41,26 @@ class BibliographyController extends Controller
             'bibliographies.*' => 'array',
         ]);
 
-        $inserted = Bibliography::insert($data['bibliographies']);
+
+        $incoming = collect($data['bibliographies']);
+
+        // Get all existing keys from DB
+        $existingKeys = Bibliography::whereIn('key', $incoming->pluck('key'))->pluck('key')->all();
+
+        // Filter original array to remove entries whose key exists in DB
+        $newEntries = array_filter($data['bibliographies'], function ($item) use ($existingKeys) {
+            return !in_array($item['key'], $existingKeys);
+        });
+
+        // Reindex array (optional, if you want 0-based keys)
+        $newEntries = array_values($newEntries);
+
+        // Now you can insert $newEntries
+        Bibliography::insert($newEntries);
 
         return response()->json([
-            'success' => $inserted,
-            'count' => count($data['bibliographies']),
+            'inserted_count' => count($newEntries),
+            'skipped_duplicates' => count($data['bibliographies']) - count($newEntries),
         ], 201);
     }
 
