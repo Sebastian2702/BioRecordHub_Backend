@@ -106,6 +106,12 @@ class BibliographyController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
 
+        if ($biblio->nomenclatures()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete: This bibliography is still referenced by one or more nomenclatures.'
+            ], 400);
+        }
+
         $biblio->delete();
 
         return response()->json(['message' => 'Deleted successfully'], 200);

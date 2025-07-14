@@ -65,6 +65,76 @@ class NomenclatureController extends Controller
         ], 201);
     }
 
+    public function getAutocomplete()
+    {
+        \Log::info('getAutocomplete chamado');
+        $columns = [
+            'kingdom',
+            'phylum',
+            'subphylum',
+            'class',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'tribe',
+            'genus',
+            'subgenus',
+            'species',
+            'subspecies',
+            'author',
+        ];
+
+        $result = [];
+
+        foreach ($columns as $column) {
+            $result[$column] = Nomenclature::query()
+                ->whereNotNull($column)
+                ->distinct()
+                ->orderBy($column)
+                ->pluck($column)
+                ->toArray();
+        }
+
+        return response()->json($result);
+    }
+
+    public function searchNomenclatures(Request $request)
+    {
+        // List of all taxonomic fields
+        $fields = [
+            'kingdom', 'phylum', 'subphylum', 'class', 'order', 'suborder', 'infraorder',
+            'superfamily', 'family', 'subfamily', 'tribe', 'genus', 'subgenus',
+            'species', 'subspecies', 'author',
+        ];
+
+        // Extract only non-empty filters from the request
+        $filters = collect($request->only($fields))
+            ->filter(fn($value) => !is_null($value) && $value !== '');
+
+        if ($filters->isEmpty()) {
+            return response()->json([
+                'message' => 'No filters provided'
+            ], 400);
+        }
+
+        // Build the query dynamically
+        $query = Nomenclature::query();
+
+        foreach ($filters as $column => $value) {
+            $query->where($column, $value);
+        }
+
+        // Get the results
+        $results = $query->get();
+
+        // Return the results
+        return response()->json($results);
+
+    }
+
     public function show($id)
     {
         $nomenclature = Nomenclature::with('bibliographies')->find($id);
@@ -99,6 +169,21 @@ class NomenclatureController extends Controller
         ]);
 
     }
+    public function destroy($id)
+    {
+        $nomenclature = Nomenclature::find($id);
+
+        if (!$nomenclature) {
+            return response()->json(['message' => 'Nomenclature not found'], 404);
+        }
+
+        $nomenclature->bibliographies()->detach();
+
+        $nomenclature->delete();
+
+        return response()->json(['message' => 'Nomenclature and related references deleted successfully']);
+    }
+
 
     public function destroyBibliographyReference($nomenclatureId, $bibliographyId)
     {
