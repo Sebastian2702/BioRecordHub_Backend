@@ -22,7 +22,7 @@ class StoreBibliographyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'key' => 'required|string|max:255',
+            'key' => 'required|string|max:255|unique:bibliographies,key',
             'item_type' => 'required|string|max:255',
             'publication_year' => 'required|digits:4|integer',
             'author' => 'required|string',
@@ -33,7 +33,7 @@ class StoreBibliographyRequest extends FormRequest
             'doi' => 'nullable|string|max:255',
             'url' => 'nullable|url',
             'abstract_note' => 'nullable|string',
-            'date' => 'required|digits:4|integer',
+            'date' => 'nullable|digits:4|integer',
             'date_added' => 'nullable|date',
             'date_modified' => 'nullable|date',
             'access_date' => 'nullable|date',

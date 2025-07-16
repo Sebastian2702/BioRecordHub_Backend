@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Imports\BibliographyImport;
+use App\Imports\NomenclatureImport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Http\Requests\ExcelImportRequest;
+use App\Http\Requests\StoreExcelImportRequest;
 use Symfony\Component\ErrorHandler\Debug;
 
 class ExcelImportController extends Controller
 {
-    public function importBibliography(ExcelImportRequest $request)
+    public function importBibliography(StoreExcelImportRequest $request)
     {
         $request->validated();
 
@@ -21,5 +22,20 @@ class ExcelImportController extends Controller
             'message' => 'File parsed successfully',
             'bibliographies' => $import->getMappedData()->all(),
         ]);
+    }
+
+    public function importNomenclature(StoreExcelImportRequest $request)
+    {
+        $request->validated();
+
+        $import = new NomenclatureImport();
+
+        Excel::import($import, $request->file('excel_file'));
+
+        return response()->json([
+            'nomenclature' => $import->getMappedData(),
+            'message' => 'File parsed successfully. Please confirm before saving.',
+        ]);
+
     }
 }

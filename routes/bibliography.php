@@ -9,4 +9,5 @@ Route::middleware('auth:sanctum')->prefix('bibliographies')->group(function () {
     Route::post('/multiple', [BibliographyController::class, 'storeMultiple']); // Create multiple
     Route::put('/{id}', [BibliographyController::class, 'update']);   // Update
     Route::delete('/{id}', [BibliographyController::class, 'destroy']);// Delete
+    Route::delete('/{bibliographyId}/nomenclatures/{nomenclatureId}', [BibliographyController::class, 'destroyNomenclatureReference']);
 });

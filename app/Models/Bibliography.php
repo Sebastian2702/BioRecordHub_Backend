@@ -9,6 +9,10 @@ class Bibliography extends Model
 {
     use HasFactory;
 
+
+    /**
+     * The 'key' field must be unique in the bibliographies table.
+     */
     protected $fillable = [
         'key',
         'item_type',
