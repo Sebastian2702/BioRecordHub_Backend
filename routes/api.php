@@ -11,3 +11,4 @@ require __DIR__.'/bibliography.php';
 require __DIR__.'/excelImport.php';
 require __DIR__.'/nomenclature.php';
 require __DIR__.'/occurrenceField.php';
+require __DIR__ . '/adminUser.php';
