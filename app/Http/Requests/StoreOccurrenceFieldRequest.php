@@ -29,10 +29,7 @@ class StoreOccurrenceFieldRequest extends FormRequest
                 'required',
                 Rule::in(['text', 'textarea', 'select', 'number', 'date']),
             ],
-            'section' => [
-                'required',
-                Rule::in(['geographic', 'collection', 'dataset', 'other']),
-            ],
+            'group' => 'required|string|max:255',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
             'options' => 'nullable|array',

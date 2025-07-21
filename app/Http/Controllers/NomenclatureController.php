@@ -67,7 +67,6 @@ class NomenclatureController extends Controller
 
     public function getAutocomplete()
     {
-        \Log::info('getAutocomplete chamado');
         $columns = [
             'kingdom',
             'phylum',
