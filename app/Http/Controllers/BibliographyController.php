@@ -5,9 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Bibliography;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreBibliographyRequest;
+use Illuminate\Support\Facades\Validator;
 
 class BibliographyController extends Controller
 {
+    private function generateUniqueKey(): string
+    {
+        do {
+            $key = 'bib_' . uniqid();
+        } while (Bibliography::where('key', $key)->exists());
+
+        return $key;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -23,44 +32,62 @@ class BibliographyController extends Controller
     {
         $validated = $request->validated();
 
-        if (!Bibliography::where('key', $validated['key'])->exists()) {
-            $biblio = Bibliography::create($validated);
+        if (empty($validated['key'])) {
+            $validated['key'] = $this->generateUniqueKey();
         }
-        else {
-            return response()->json(['message' => 'Bibliography with this key already exists'], 422);
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filename = uniqid('biblio_') . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('public/bibliographies', $filename);
+            $validated['file'] = $filename;
         }
+
+
+        $biblio = Bibliography::create($validated);
+
         return response()->json($biblio, 201);
     }
 
 
 
     public function storeMultiple(Request $request)
-    {
-        $data = $request->validate([
-            'bibliographies' => 'required|array',
-            'bibliographies.*' => 'array',
-        ]);
+    {$data = $request->validate([
+        'bibliographies' => 'required|array',
+        'bibliographies.*' => 'array',
+    ]);
 
+        $validatedEntries = [];
 
-        $incoming = collect($data['bibliographies']);
+        foreach ($data['bibliographies'] as $index => $item) {
+            if (!array_key_exists('key', $item) || empty($item['key'])) {
 
-        // Get all existing keys from DB
-        $existingKeys = Bibliography::whereIn('key', $incoming->pluck('key'))->pluck('key')->all();
+                $item['key'] = $this->generateUniqueKey();
+            }
 
-        // Filter original array to remove entries whose key exists in DB
-        $newEntries = array_filter($data['bibliographies'], function ($item) use ($existingKeys) {
+            $validator = Validator::make($item, (new StoreBibliographyRequest)->rules());
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first(),
+                    'error' => "Validation failed on item $index",
+                ], 422);
+            }
+
+            $validatedEntries[] = $validator->validated();
+        }
+
+        $existingKeys = Bibliography::whereIn('key', array_column($validatedEntries, 'key'))->pluck('key')->all();
+
+        $newEntries = array_filter($validatedEntries, function ($item) use ($existingKeys) {
             return !in_array($item['key'], $existingKeys);
         });
 
-        // Reindex array (optional, if you want 0-based keys)
-        $newEntries = array_values($newEntries);
-
-        // Now you can insert $newEntries
         Bibliography::insert($newEntries);
 
         return response()->json([
             'inserted_count' => count($newEntries),
-            'skipped_duplicates' => count($data['bibliographies']) - count($newEntries),
+            'skipped_duplicates' => count($validatedEntries) - count($newEntries),
         ], 201);
     }
 
@@ -82,7 +109,7 @@ class BibliographyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreBibliographyRequest $request, string $id)
     {
         $biblio = Bibliography::find($id);
 

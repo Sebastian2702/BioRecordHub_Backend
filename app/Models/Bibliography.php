@@ -51,6 +51,8 @@ class Bibliography extends Model
         'call_number',
         'extra',
         'notes',
+        'contributors',
+        'verified',
     ];
 
     /**
