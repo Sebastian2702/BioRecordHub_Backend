@@ -8,6 +8,7 @@ use App\Http\Requests\StoreBibliographyRequest;
 use Illuminate\Support\Facades\Validator;
 use ZipArchive;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class BibliographyController extends Controller
 {
@@ -138,13 +139,30 @@ class BibliographyController extends Controller
      */
     public function update(StoreBibliographyRequest $request, string $id)
     {
+        $validated = $request->validated();
         $biblio = Bibliography::find($id);
 
         if (!$biblio) {
             return response()->json(['message' => 'Not found'], 404);
         }
 
-        $biblio->update($request->all());
+        if ($request->hasFile('file') && !$biblio->file) {
+            $file = $request->file('file');
+            $originalFilename = $file->getClientOriginalName();
+            $zipFilename =  $validated['key'] . '.zip';
+            $zipPath = storage_path("app/public/bibliographies/{$zipFilename}");
+
+            $zip = new ZipArchive;
+            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
+                $zip->addFromString($originalFilename, file_get_contents($file->getRealPath()));
+                $zip->close();
+            } else {
+                return response()->json(['error' => 'Failed to create zip file.'], 500);
+            }
+            $validated['file'] = $zipFilename;
+        }
+
+        $biblio->update($validated);
 
         return response()->json($biblio, 200);
     }
@@ -194,5 +212,29 @@ class BibliographyController extends Controller
         $biblio->nomenclatures()->detach($nomenclatureId);
 
         return response()->json(['message' => 'Nomenclature reference removed successfully'], 200);
+    }
+
+    public function destroyFile(string $id)
+    {
+        $biblio = Bibliography::find($id);
+
+        if (!$biblio) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        if (empty($biblio->file)) {
+            return response()->json(['message' => 'No file associated with this bibliography'], 400);
+        }
+
+        $filePath = storage_path('app/public/bibliographies/' . $biblio->file);
+
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+            $biblio->file = null;
+            $biblio->save();
+            return response()->json(['message' => 'File deleted successfully'], 200);
+        } else {
+            return response()->json(['message' => 'File not found'], 404);
+        }
     }
 }
