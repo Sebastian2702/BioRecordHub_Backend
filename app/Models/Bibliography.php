@@ -53,6 +53,7 @@ class Bibliography extends Model
         'notes',
         'contributors',
         'verified',
+        'file'
     ];
 
     /**
