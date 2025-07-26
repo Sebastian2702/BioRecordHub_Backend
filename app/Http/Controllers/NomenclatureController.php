@@ -114,9 +114,7 @@ class NomenclatureController extends Controller
             ->filter(fn($value) => !is_null($value) && $value !== '');
 
         if ($filters->isEmpty()) {
-            return response()->json([
-                'message' => 'No filters provided'
-            ], 400);
+            abort(400, 'No filters provided');
         }
 
         // Build the query dynamically

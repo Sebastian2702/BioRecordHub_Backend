@@ -27,6 +27,9 @@ class Nomenclature extends Model
         'subspecies',
         'author',
         'remarks',
+        'contributors',
+        'synonyms',
+        'images',
     ];
 
     /**
