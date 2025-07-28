@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Nomenclature;
 use App\Models\Bibliography;
 use App\Http\Requests\StoreNomenclatureRequest;
+use Illuminate\Support\Facades\Storage;
+use ZipArchive;
+use Illuminate\Support\Facades\Log;
 
 class NomenclatureController extends Controller
 {
@@ -15,24 +18,46 @@ class NomenclatureController extends Controller
         return response()->json($nomenclatures);
     }
 
+
     public function store(StoreNomenclatureRequest $request)
     {
         $validated = $request->validated();
 
-        // Extract bibliography IDs (if any), and remove from data before create
         $bibliographyIds = $validated['bibliographies'] ?? [];
         unset($validated['bibliographies']);
 
-        // Create the nomenclature
+        $imageFiles = $validated['images'] ?? null;
+        unset($validated['images']);
+
         $nomenclature = Nomenclature::create($validated);
 
-        // Attach bibliographies
         if (!empty($bibliographyIds)) {
             $nomenclature->bibliographies()->sync($bibliographyIds);
         }
 
-        return response()->json($nomenclature->load('bibliographies'), 201);
+        $folderPath = storage_path("app/public/nomenclature_images/{$nomenclature->id}");
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath, 0755, true);
+        }
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $filename = 'nomenclature' . $nomenclature->id . '_' . uniqid() . '.jpg';
+                $path = "{$folderPath}/{$filename}";
+
+                $image->move($folderPath, $filename);
+
+                $nomenclature->images()->create([
+                    'filename' => $filename,
+                    'path' => $path,
+                ]);
+            }
+        }
+
+        return response()->json($nomenclature->load('bibliographies', 'images'), 201);
     }
+
+
 
     public function storeMultiple(Request $request)
     {
@@ -102,14 +127,12 @@ class NomenclatureController extends Controller
 
     public function searchNomenclatures(Request $request)
     {
-        // List of all taxonomic fields
         $fields = [
             'kingdom', 'phylum', 'subphylum', 'class', 'order', 'suborder', 'infraorder',
             'superfamily', 'family', 'subfamily', 'tribe', 'genus', 'subgenus',
             'species', 'subspecies', 'author',
         ];
 
-        // Extract only non-empty filters from the request
         $filters = collect($request->only($fields))
             ->filter(fn($value) => !is_null($value) && $value !== '');
 
@@ -117,52 +140,51 @@ class NomenclatureController extends Controller
             abort(400, 'No filters provided');
         }
 
-        // Build the query dynamically
         $query = Nomenclature::query();
 
         foreach ($filters as $column => $value) {
             $query->where($column, $value);
         }
 
-        // Get the results
         $results = $query->get();
 
-        // Return the results
         return response()->json($results);
 
     }
 
     public function show($id)
     {
-        $nomenclature = Nomenclature::with('bibliographies')->find($id);
+        $nomenclature = Nomenclature::with('bibliographies', 'images')->find($id);
 
         if (!$nomenclature) {
             return response()->json(['message' => 'Nomenclature not found'], 404);
         }
+
+        $nomenclature->images->transform(function ($image) {
+            $relativePath = str_replace(storage_path('app/public'), '', $image->path);
+            $image->url = asset('storage' . $relativePath);
+            return $image;
+        });
 
         return response()->json($nomenclature);
     }
 
     public function update($id, StoreNomenclatureRequest $request)
     {
-        // Validate the request
         $validated = $request->validated();
         $nomenclature = Nomenclature::find($id);
 
-        // Extract bibliography IDs from the request
         $newBibliographyIds = $validated['bibliographies'] ?? [];
         unset($validated['bibliographies']);
 
-        // Update the nomenclature fields (excluding bibliographies)
         $nomenclature->update($validated);
 
-        // Sync the pivot table with new IDs
-        // This will automatically add new ones and remove unselected ones
+
         $nomenclature->bibliographies()->sync($newBibliographyIds);
 
         return response()->json([
             'message' => 'Nomenclature updated successfully.',
-            'nomenclature' => $nomenclature->load('bibliographies') // include the relation
+            'nomenclature' => $nomenclature->load('bibliographies')
         ]);
 
     }

@@ -29,7 +29,6 @@ class Nomenclature extends Model
         'remarks',
         'contributors',
         'synonyms',
-        'images',
     ];
 
     /**
@@ -38,5 +37,10 @@ class Nomenclature extends Model
     public function bibliographies()
     {
         return $this->belongsToMany(Bibliography::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(NomenclatureImage::class); // or however you name the related model
     }
 }
