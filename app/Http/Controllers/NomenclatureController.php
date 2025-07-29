@@ -171,6 +171,7 @@ class NomenclatureController extends Controller
 
     public function update($id, StoreNomenclatureRequest $request)
     {
+        Log::info($request);
         $validated = $request->validated();
         $nomenclature = Nomenclature::find($id);
 
@@ -179,8 +180,29 @@ class NomenclatureController extends Controller
 
         $nomenclature->update($validated);
 
-
         $nomenclature->bibliographies()->sync($newBibliographyIds);
+
+        $imageFiles = $validated['newImages'] ?? null;
+        unset($validated['newImages']);
+
+        $folderPath = storage_path("app/public/nomenclature_images/{$nomenclature->id}");
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath, 0755, true);
+        }
+
+        if ($request->hasFile('newImages')) {
+            foreach ($request->file('newImages') as $image) {
+                $filename = 'nomenclature' . $nomenclature->id . '_' . uniqid() . '.jpg';
+                $path = "{$folderPath}/{$filename}";
+
+                $image->move($folderPath, $filename);
+
+                $nomenclature->images()->create([
+                    'filename' => $filename,
+                    'path' => $path,
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'Nomenclature updated successfully.',
@@ -197,6 +219,14 @@ class NomenclatureController extends Controller
         }
 
         $nomenclature->bibliographies()->detach();
+
+        $nomenclature->images()->delete();
+
+
+        $folderPath = storage_path("app/public/nomenclature_images/{$nomenclature->id}");
+        if (file_exists($folderPath)) {
+            \File::deleteDirectory($folderPath);
+        }
 
         $nomenclature->delete();
 
@@ -219,5 +249,46 @@ class NomenclatureController extends Controller
         $bibliography->nomenclatures()->detach($nomenclatureId);
 
         return response()->json(['message' => 'Nomenclature reference removed successfully']);
+    }
+
+    public function destroyAllFiles($id)
+    {
+        $nomenclature = Nomenclature::find($id);
+
+        if (!$nomenclature) {
+            return response()->json(['message' => 'Nomenclature not found'], 404);
+        }
+
+        foreach ($nomenclature->images as $image) {
+            $filePath = storage_path('app/public/nomenclature_images/' . $nomenclature->id . '/' . $image->filename);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+            $image->delete();
+        }
+
+        return response()->json(['message' => 'Nomenclature images deleted successfully']);
+    }
+
+    public function destroyFile($nomenclatureId, $imageId)
+    {
+        $nomenclature = Nomenclature::find($nomenclatureId);
+        if (!$nomenclature) {
+            return response()->json(['message' => 'Nomenclature not found'], 404);
+        }
+
+        $image = $nomenclature->images()->find($imageId);
+        if (!$image) {
+            return response()->json(['message' => 'Image not found'], 404);
+        }
+
+        $filePath = storage_path('app/public/nomenclature_images/' . $nomenclature->id . '/' . $image->filename);
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
+
+        $image->delete();
+
+        return response()->json(['message' => 'Image deleted successfully']);
     }
 }
