@@ -39,6 +39,9 @@ class StoreNomenclatureRequest extends FormRequest
             'subspecies' => 'nullable|string',
             'author' => 'required|string',
             'remarks' => 'nullable|string',
+            'contributors' => 'required|string',
+            'synonyms' => 'nullable|string',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:5048',
             'bibliographies' => 'sometimes|array',
             'bibliographies.*' => 'exists:bibliographies,id',
         ];

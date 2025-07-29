@@ -22,12 +22,12 @@ class StoreBibliographyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'key' => 'required|string|max:255|unique:bibliographies,key',
             'item_type' => 'required|string|max:255',
             'publication_year' => 'required|digits:4|integer',
             'author' => 'required|string',
             'title' => 'required|string',
             'publication_title' => 'required|string',
+            'contributors' => 'required|string',
             'isbn' => 'nullable|string|max:255',
             'issn' => 'nullable|string|max:255',
             'doi' => 'nullable|string|max:255',
@@ -59,6 +59,9 @@ class StoreBibliographyRequest extends FormRequest
             'call_number' => 'nullable|string|max:255',
             'extra' => 'nullable|string',
             'notes' => 'nullable|string',
+            'key' => 'nullable',
+            'file' => 'nullable|file|mimes:pdf',
+            'verified' => 'nullable|boolean',
         ];
     }
 }
