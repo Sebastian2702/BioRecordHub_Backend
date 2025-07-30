@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Project extends Model
 {
     protected $fillable = [
@@ -13,10 +13,11 @@ class Project extends Model
         'course',
         'advisor',
         'description',
+        'creator',
     ];
 
-    public function files(): BelongsToMany
+    public function files(): HasMany
     {
-        return $this->belongsToMany(ProjectFile::class);
+        return $this->hasMany(ProjectFile::class);
     }
 }
