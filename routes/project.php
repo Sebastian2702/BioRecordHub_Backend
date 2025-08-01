@@ -7,6 +7,7 @@ Route::middleware('auth:sanctum')->prefix('project')->group(function () {
     Route::get('/', [ProjectController::class, 'index']);
     Route::post('/', [ProjectController::class, 'store']);
     Route::put('/{id}', [ProjectController::class, 'update']);
+    Route::delete('/{projectId}/file/{fileId}', [ProjectController::class, 'destroyFile']);
     Route::delete('/{id}', [ProjectController::class, 'destroy']);
     Route::get('/{id}', [ProjectController::class, 'show']);
 });

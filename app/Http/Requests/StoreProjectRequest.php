@@ -29,8 +29,7 @@ class StoreProjectRequest extends FormRequest
             'advisor' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'creator' => 'nullable|string',
-            'files' => 'nullable|array',
-            'files.*' => 'exists:files,id',
+            'files.*' => 'file|mimes:pdf|max:10240',
         ];
     }
 }

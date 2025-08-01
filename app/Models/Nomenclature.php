@@ -41,6 +41,6 @@ class Nomenclature extends Model
 
     public function images()
     {
-        return $this->hasMany(NomenclatureImage::class); // or however you name the related model
+        return $this->hasMany(NomenclatureImage::class);
     }
 }

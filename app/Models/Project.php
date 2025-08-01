@@ -16,7 +16,7 @@ class Project extends Model
         'creator',
     ];
 
-    public function files(): HasMany
+    public function files()
     {
         return $this->hasMany(ProjectFile::class);
     }
