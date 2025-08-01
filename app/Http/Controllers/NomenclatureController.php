@@ -6,9 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Nomenclature;
 use App\Models\Bibliography;
 use App\Http\Requests\StoreNomenclatureRequest;
-use Illuminate\Support\Facades\Storage;
-use ZipArchive;
-use Illuminate\Support\Facades\Log;
 
 class NomenclatureController extends Controller
 {
@@ -171,7 +168,6 @@ class NomenclatureController extends Controller
 
     public function update($id, StoreNomenclatureRequest $request)
     {
-        Log::info($request);
         $validated = $request->validated();
         $nomenclature = Nomenclature::find($id);
 
