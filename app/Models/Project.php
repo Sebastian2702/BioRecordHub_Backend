@@ -20,4 +20,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectFile::class);
     }
+
+    public function occurrences()
+    {
+        return $this->hasMany(Occurrence::class);
+    }
 }

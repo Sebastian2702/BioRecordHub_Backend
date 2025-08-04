@@ -50,7 +50,7 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = Project::with('files')->find($id);
+        $project = Project::with('files', 'occurrences')->find($id);
         if (!$project) {
             return response()->json(['message' => 'Project not found'], 404);
         }

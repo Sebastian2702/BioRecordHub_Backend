@@ -151,7 +151,7 @@ class NomenclatureController extends Controller
 
     public function show($id)
     {
-        $nomenclature = Nomenclature::with('bibliographies', 'images')->find($id);
+        $nomenclature = Nomenclature::with('bibliographies', 'images', 'occurrences')->find($id);
 
         if (!$nomenclature) {
             return response()->json(['message' => 'Nomenclature not found'], 404);
