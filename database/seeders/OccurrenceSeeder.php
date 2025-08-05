@@ -25,6 +25,7 @@ class OccurrenceSeeder extends Seeder
                 'decimal_longitude' => 35.0023,
                 'basis_of_record' => 'HumanObservation',
                 'occurrence_id' => 'occ-001',
+                'contributors' => 'Sebastian'
             ],
             [
                 'nomenclature_id' => 93,
@@ -37,6 +38,7 @@ class OccurrenceSeeder extends Seeder
                 'decimal_longitude' => -9.3817,
                 'basis_of_record' => 'PreservedSpecimen',
                 'occurrence_id' => 'occ-002',
+                'contributors' => 'Sebastian'
             ],
             [
                 'nomenclature_id' => 94,
@@ -49,6 +51,7 @@ class OccurrenceSeeder extends Seeder
                 'decimal_longitude' => 8.2415,
                 'basis_of_record' => 'FossilSpecimen',
                 'occurrence_id' => 'occ-003',
+                'contributors' => 'Sebastian'
             ],
         ];
 
