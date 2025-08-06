@@ -122,6 +122,19 @@ class NomenclatureController extends Controller
         return response()->json($result);
     }
 
+    public function getSpeciesAutocomplete()
+    {
+        $species = Nomenclature::query()
+            ->whereNotNull('species')
+            ->whereNotNull('author')
+            ->select('id', 'species', 'author')
+            ->distinct()
+            ->orderBy('species')
+            ->get();
+
+        return response()->json($species);
+    }
+
     public function searchNomenclatures(Request $request)
     {
         $fields = [

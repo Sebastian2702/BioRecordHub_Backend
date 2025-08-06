@@ -33,4 +33,9 @@ class Occurrence extends Model
     {
         return $this->belongsToMany(OccurrenceField::class)->withPivot('value');
     }
+
+    public function files()
+    {
+        return $this->hasMany(OccurrenceFiles::class);
+    }
 }

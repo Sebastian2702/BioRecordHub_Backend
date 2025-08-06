@@ -64,6 +64,20 @@ class ProjectController extends Controller
         return response()->json($project);
     }
 
+    public function getProjectsAutoComplete(Request $request)
+    {
+        $projects = Project::query()
+            ->whereNotNull('title')
+            ->whereNotNull('research_type')
+            ->whereNotNull('description')
+            ->select('id', 'title', 'research_type', 'description')
+            ->distinct()
+            ->orderBy('id')
+            ->get();
+
+        return response()->json($projects);
+    }
+
     public function update(StoreProjectRequest $request, $id)
     {
         $project = Project::find($id);

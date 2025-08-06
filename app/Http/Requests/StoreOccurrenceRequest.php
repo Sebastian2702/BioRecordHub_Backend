@@ -32,12 +32,13 @@ class StoreOccurrenceRequest extends FormRequest
             'decimal_latitude'  => 'nullable|numeric|between:-90,90',
             'decimal_longitude' => 'nullable|numeric|between:-180,180',
             'basis_of_record'   => 'nullable|string|max:255',
+            'contributors'      => 'required|string',
 
             'occurrence_id'     => 'nullable|uuid|unique:occurrences,occurrence_id',
 
-            'fields'            => 'nullable|array',
             'fields.*.id'       => 'required|exists:occurrence_fields,id',
             'fields.*.value'    => 'nullable|string',
+            'files.*'           => 'file|max:10240',
         ];
     }
 }

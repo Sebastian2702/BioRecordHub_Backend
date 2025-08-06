@@ -4,6 +4,7 @@ use App\Http\Controllers\NomenclatureController;
 
 Route::middleware('auth:sanctum')->prefix('nomenclature')->group(function () {
     Route::get('/getAutoComplete', [NomenclatureController::class, 'getAutocomplete']);
+    Route::get('/speciesAutocomplete', [NomenclatureController::class, 'getSpeciesAutocomplete']);
     Route::get('/', [NomenclatureController::class, 'index']);
     Route::post('/', [NomenclatureController::class, 'store']);
     Route::post('/multiple', [NomenclatureController::class, 'storeMultiple']);
