@@ -17,6 +17,7 @@ class Occurrence extends Model
         'decimal_longitude',
         'basis_of_record',
         'occurrence_id',
+        'contributors',
     ];
 
     public function project()

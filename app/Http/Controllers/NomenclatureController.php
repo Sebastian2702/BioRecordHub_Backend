@@ -172,7 +172,9 @@ class NomenclatureController extends Controller
 
         $nomenclature->images->transform(function ($image) {
             $relativePath = str_replace(storage_path('app/public'), '', $image->path);
+            $extension = strtolower(pathinfo($image->filename, PATHINFO_EXTENSION));
             $image->url = asset('storage' . $relativePath);
+            $image->extension = $extension;
             return $image;
         });
 

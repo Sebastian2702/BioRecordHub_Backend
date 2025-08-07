@@ -57,7 +57,9 @@ class ProjectController extends Controller
 
         $project->files->transform(function ($file) {
             $relativePath = str_replace(storage_path('app/public'), '', $file->path);
+            $extension = strtolower(pathinfo($file->filename, PATHINFO_EXTENSION));
             $file->url = asset('storage' . $relativePath);
+            $file->extension = $extension;
             return $file;
         });
 

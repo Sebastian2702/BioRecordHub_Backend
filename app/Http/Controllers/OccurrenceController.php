@@ -17,12 +17,43 @@ class OccurrenceController extends Controller
 
     public function show($id)
     {
-        $occurrence = Occurrence::with('project', 'nomenclature', 'fields')->find($id);
+        $occurrence = Occurrence::with('project', 'nomenclature', 'fields', 'files')->find($id);
+
         if (!$occurrence) {
             return response()->json(['message' => 'Occurrence not found'], 404);
         }
+
+        $baseStoragePath = storage_path('app/public');
+
+        $images = [];
+        $documents = [];
+
+        foreach ($occurrence->files as $file) {
+            $relativePath = str_replace($baseStoragePath, '', $file->path);
+            $url = asset('storage' . $relativePath);
+
+            $extension = strtolower(pathinfo($file->filename, PATHINFO_EXTENSION));
+
+            if (in_array($extension, ['png', 'jpg', 'jpeg'])) {
+                $images[] = [
+                    'filename' => $file->filename,
+                    'url' => $url,
+                ];
+            } else {
+                $documents[] = [
+                    'filename' => $file->filename,
+                    'url' => $url,
+                    'extension' => $extension,
+                ];
+            }
+        }
+
+        $occurrence->setRelation('images', collect($images));
+        $occurrence->setRelation('files', collect($documents));
+
         return response()->json($occurrence);
     }
+
 
     public function store(StoreOccurrenceRequest $request)
     {
@@ -33,7 +64,7 @@ class OccurrenceController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('files')) {
-            $allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf', 'xlsx'];
+            $allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf', 'xlsx', 'docx'];
             foreach ($request->file('files') as $file) {
                 $extension = strtolower($file->getClientOriginalExtension());
                 if (!in_array($extension, $allowedExtensions)) {
