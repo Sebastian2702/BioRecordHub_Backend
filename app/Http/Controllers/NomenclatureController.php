@@ -122,6 +122,19 @@ class NomenclatureController extends Controller
         return response()->json($result);
     }
 
+    public function getSpeciesAutocomplete()
+    {
+        $species = Nomenclature::query()
+            ->whereNotNull('species')
+            ->whereNotNull('author')
+            ->select('id', 'species', 'author')
+            ->distinct()
+            ->orderBy('species')
+            ->get();
+
+        return response()->json($species);
+    }
+
     public function searchNomenclatures(Request $request)
     {
         $fields = [
@@ -151,7 +164,7 @@ class NomenclatureController extends Controller
 
     public function show($id)
     {
-        $nomenclature = Nomenclature::with('bibliographies', 'images')->find($id);
+        $nomenclature = Nomenclature::with('bibliographies', 'images', 'occurrences')->find($id);
 
         if (!$nomenclature) {
             return response()->json(['message' => 'Nomenclature not found'], 404);
@@ -159,7 +172,9 @@ class NomenclatureController extends Controller
 
         $nomenclature->images->transform(function ($image) {
             $relativePath = str_replace(storage_path('app/public'), '', $image->path);
+            $extension = strtolower(pathinfo($image->filename, PATHINFO_EXTENSION));
             $image->url = asset('storage' . $relativePath);
+            $image->extension = $extension;
             return $image;
         });
 

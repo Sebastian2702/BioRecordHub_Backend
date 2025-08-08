@@ -50,18 +50,34 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = Project::with('files')->find($id);
+        $project = Project::with('files', 'occurrences')->find($id);
         if (!$project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
         $project->files->transform(function ($file) {
             $relativePath = str_replace(storage_path('app/public'), '', $file->path);
+            $extension = strtolower(pathinfo($file->filename, PATHINFO_EXTENSION));
             $file->url = asset('storage' . $relativePath);
+            $file->extension = $extension;
             return $file;
         });
 
         return response()->json($project);
+    }
+
+    public function getProjectsAutoComplete(Request $request)
+    {
+        $projects = Project::query()
+            ->whereNotNull('title')
+            ->whereNotNull('research_type')
+            ->whereNotNull('description')
+            ->select('id', 'title', 'research_type', 'description')
+            ->distinct()
+            ->orderBy('id')
+            ->get();
+
+        return response()->json($projects);
     }
 
     public function update(StoreProjectRequest $request, $id)

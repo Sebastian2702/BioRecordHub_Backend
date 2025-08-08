@@ -22,11 +22,11 @@ class OccurrenceField extends Model
         'options' => 'array',
     ];
 
-   /* public function occurrences()
+    public function occurrences()
     {
-        return $this->belongsToMany(Occurrence::class);
-    }*/
+        return $this->belongsToMany(Occurrence::class)->withPivot('value');
+    }
 }
 
-// In OccurrenceField.php
+
 

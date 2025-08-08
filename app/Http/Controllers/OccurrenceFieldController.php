@@ -50,15 +50,18 @@ class OccurrenceFieldController extends Controller
         ]);
     }
 
-    /*public function destroy($id)
+    public function destroy($id)
     {
         $field = OccurrenceField::find($id);
         if (!$field) {
-            return response()->json(['message' => 'Occurrence field not found'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Occurrence field not found'
+            ], 404);
         }
 
-        // Check if any occurrences are using this field
-        $occurrenceCount = $field->occurrences()->count(); // assuming relationship exists
+
+        $occurrenceCount = $field->occurrences()->count();
 
         if ($occurrenceCount > 0) {
             return response()->json([
@@ -69,5 +72,5 @@ class OccurrenceFieldController extends Controller
         $field->delete();
 
         return response()->json(['message' => 'Occurrence field deleted successfully.']);
-    }*/
+    }
 }

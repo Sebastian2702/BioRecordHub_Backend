@@ -43,4 +43,9 @@ class Nomenclature extends Model
     {
         return $this->hasMany(NomenclatureImage::class);
     }
+
+    public function occurrences()
+    {
+        return $this->hasMany(Occurrence::class);
+    }
 }

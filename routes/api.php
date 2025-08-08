@@ -13,3 +13,4 @@ require __DIR__.'/nomenclature.php';
 require __DIR__.'/occurrenceField.php';
 require __DIR__ . '/adminUser.php';
 require __DIR__.'/project.php';
+require __DIR__.'/occurrence.php';
