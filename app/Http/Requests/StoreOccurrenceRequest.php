@@ -34,7 +34,6 @@ class StoreOccurrenceRequest extends FormRequest
             'basis_of_record'   => 'nullable|string|max:255',
             'contributors'      => 'required|string',
 
-            'occurrence_id'     => 'nullable|uuid|unique:occurrences,occurrence_id',
 
             'fields.*.id'       => 'required|exists:occurrence_fields,id',
             'fields.*.value'    => 'nullable|string',

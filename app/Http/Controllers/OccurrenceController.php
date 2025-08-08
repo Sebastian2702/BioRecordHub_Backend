@@ -36,11 +36,13 @@ class OccurrenceController extends Controller
 
             if (in_array($extension, ['png', 'jpg', 'jpeg'])) {
                 $images[] = [
+                    'id' => $file->id,
                     'filename' => $file->filename,
                     'url' => $url,
                 ];
             } else {
                 $documents[] = [
+                    'id' => $file->id,
                     'filename' => $file->filename,
                     'url' => $url,
                     'extension' => $extension,
@@ -116,6 +118,97 @@ class OccurrenceController extends Controller
         }
 
         return response()->json($occurrence, 201);
+    }
+
+    public function update($id, StoreOccurrenceRequest $request)
+    {
+        if ($request->has('fields') && is_string($request->fields)) {
+            $decodedFields = json_decode($request->fields, true);
+            $request->merge(['fields' => $decodedFields]);
+        }
+        $validated = $request->validated();
+
+        if ($request->hasFile('files')) {
+            $allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf', 'xlsx', 'docx'];
+            foreach ($request->file('files') as $file) {
+                $extension = strtolower($file->getClientOriginalExtension());
+                if (!in_array($extension, $allowedExtensions)) {
+                    return response()->json(['message' => 'Files must be of type: png, jpg, jpeg, pdf, docx, xlsx. type'], 422);
+                }
+            }
+        }
+
+        $occurrence = Occurrence::find($id);
+
+        if (!$occurrence) {
+            return response()->json(['message' => 'Occurrence not found'], 404);
+        }
+
+        $occurrence->update([
+            'scientific_name'   => $validated['scientific_name'],
+            'event_date'        => $validated['event_date'],
+            'country'           => $validated['country'],
+            'locality'          => $validated['locality'],
+            'decimal_latitude'  => $validated['decimal_latitude'],
+            'decimal_longitude' => $validated['decimal_longitude'],
+            'basis_of_record'   => $validated['basis_of_record'],
+            'nomenclature_id'   => $validated['nomenclature_id'],
+            'project_id'        => $validated['project_id'],
+            'contributors'      => $validated['contributors'],
+        ]);
+
+        if (!empty($request['fields'])) {
+            $occurrence->fields()->detach();
+            foreach ($request['fields'] as $field) {
+                $occurrence->fields()->attach($field['id'], ['value' => $field['value']]);
+            }
+        }
+
+        $folderPath = storage_path("app/public/occurrences/{$occurrence->id}");
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath, 0755, true);
+        }
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $extension = $file->getClientOriginalExtension();
+
+                $filename = 'project' . $occurrence->id . '_' . uniqid() . '.' . $extension;
+
+                $file->move($folderPath, $filename);
+
+                $occurrence->files()->create([
+                    'filename' => $filename,
+                    'path' => "{$folderPath}/{$filename}",
+                ]);
+            }
+        }
+
+        return response()->json($occurrence->load('fields', 'files'), 200);
+    }
+
+    public function destroyFile($id, $fileId)
+    {
+        $occurrence = Occurrence::find($id);
+
+        if (!$occurrence) {
+            return response()->json(['message' => 'Occurrence not found'], 404);
+        }
+
+        $file = $occurrence->files()->find($fileId);
+
+        if (!$file) {
+            return response()->json(['message' => 'File not found'], 404);
+        }
+
+        $filePath = storage_path("app/public/occurrences/{$occurrence->id}/{$file->filename}");
+
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $file->delete();
+
+        return response()->json(['message' => 'File deleted successfully']);
     }
 
     public function destroy($id)
