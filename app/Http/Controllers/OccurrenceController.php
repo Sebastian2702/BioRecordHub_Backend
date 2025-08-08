@@ -221,6 +221,13 @@ class OccurrenceController extends Controller
 
         $occurrence->fields()->detach();
 
+        $occurrence->files()->delete();
+
+
+        $folderPath = storage_path("app/public/occurrences/{$occurrence->id}");
+        if (file_exists($folderPath)) {
+            \File::deleteDirectory($folderPath);
+        }
 
         $occurrence->delete();
 
