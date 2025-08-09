@@ -7,6 +7,7 @@ use App\Models\Nomenclature;
 use App\Models\Bibliography;
 use App\Http\Requests\StoreNomenclatureRequest;
 
+
 class NomenclatureController extends Controller
 {
     public function index()

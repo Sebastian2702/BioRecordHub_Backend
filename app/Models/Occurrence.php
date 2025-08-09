@@ -18,6 +18,15 @@ class Occurrence extends Model
         'basis_of_record',
         'occurrence_id',
         'contributors',
+        'institution_code',
+        'collection_code',
+        'catalog_number',
+        'recorded_by',
+        'identified_by',
+        'date_identified',
+        'occurrence_remarks',
+        'language',
+        'license',
     ];
 
     public function project()
