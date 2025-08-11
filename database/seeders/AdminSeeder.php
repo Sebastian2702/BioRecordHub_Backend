@@ -18,6 +18,7 @@ class AdminSeeder extends Seeder
             'name' => 'Admin',
             'password' => bcrypt('adminpassword'),
             'role' => 'admin',
+            'reset_password_token' => 'admin-ResetPassword',
         ]);
     }
 }
