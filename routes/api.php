@@ -14,3 +14,5 @@ require __DIR__.'/occurrenceField.php';
 require __DIR__ . '/adminUser.php';
 require __DIR__.'/project.php';
 require __DIR__.'/occurrence.php';
+require __DIR__.'/excelExport.php';
+require __DIR__.'/dashboard.php';

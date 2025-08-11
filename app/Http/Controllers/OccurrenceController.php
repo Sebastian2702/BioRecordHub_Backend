@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Occurrence;
 use App\Http\Requests\StoreOccurrenceRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 
 class OccurrenceController extends Controller
 {
@@ -64,6 +65,7 @@ class OccurrenceController extends Controller
             $request->merge(['fields' => $decodedFields]);
         }
         $validated = $request->validated();
+        Log::info($validated);
 
         if ($request->hasFile('files')) {
             $allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf', 'xlsx', 'docx'];
@@ -78,17 +80,26 @@ class OccurrenceController extends Controller
         $occurrence_id = $validated['scientific_name'] . "_" . $validated['event_date'] . "_" . uniqid();
 
         $occurrence = Occurrence::create([
-            'scientific_name'   => $validated['scientific_name'],
-            'event_date'        => $validated['event_date'],
-            'country'           => $validated['country'],
-            'locality'          => $validated['locality'],
-            'decimal_latitude'  => $validated['decimal_latitude'],
-            'decimal_longitude' => $validated['decimal_longitude'],
-            'basis_of_record'   => $validated['basis_of_record'],
-            'nomenclature_id'   => $validated['nomenclature_id'],
-            'project_id'        => $validated['project_id'],
-            'contributors'      => $validated['contributors'],
-            'occurrence_id'     => $occurrence_id,
+            'scientific_name'    => $validated['scientific_name'],
+            'event_date'         => $validated['event_date'],
+            'country'            => $validated['country'],
+            'locality'           => $validated['locality'],
+            'decimal_latitude'   => $validated['decimal_latitude'],
+            'decimal_longitude'  => $validated['decimal_longitude'],
+            'basis_of_record'    => $validated['basis_of_record'],
+            'nomenclature_id'    => $validated['nomenclature_id'],
+            'project_id'         => $validated['project_id'],
+            'contributors'       => $validated['contributors'],
+            'occurrence_id'      => $occurrence_id,
+            'institution_code'   => $validated['institution_code'],
+            'collection_code'    => $validated['collection_code'],
+            'catalog_number'     => $validated['catalog_number'],
+            'recorded_by'        => $validated['recorded_by'],
+            'identified_by'      => $validated['identified_by'],
+            'date_identified'    => $validated['date_identified'],
+            'occurrence_remarks' => $validated['occurrence_remarks'],
+            'language'           => $validated['language'],
+            'license'            => $validated['license'],
         ]);
 
         if (!empty($request['fields'])) {
@@ -184,6 +195,46 @@ class OccurrenceController extends Controller
         }
 
         return response()->json($occurrence->load('fields', 'files'), 200);
+    }
+
+    public function exportCsv($id)
+    {
+        $occurrence = Occurrence::find($id);
+
+        if (!$occurrence) {
+            return response()->json(['message' => 'Occurrence not found'], 404);
+        }
+
+        $data = [
+            [
+                'occurrenceID'        => $occurrence->id,
+                'scientificName'      => $occurrence->scientific_name,
+                'eventDate'           => $occurrence->event_date,
+                'decimalLatitude'     => $occurrence->decimal_latitude,
+                'decimalLongitude'    => $occurrence->decimal_longitude,
+                'country'             => $occurrence->country,
+                'recordedBy'          => $occurrence->recorded_by,
+                'institutionCode'     => $occurrence->institution_code,
+                'collectionCode'      => $occurrence->collection_code,
+                'catalogNumber'       => $occurrence->catalog_number,
+                'basisOfRecord'       => $occurrence->basis_of_record,
+                'identifiedBy'        => $occurrence->identified_by,
+                'identificationDate'  => $occurrence->date_identified,
+                'occurrenceRemarks'   => $occurrence->occurrence_remarks,
+            ]
+        ];
+
+        $headers = array_keys($data[0]);
+        $csv = implode(",", $headers) . "\n";
+        foreach ($data as $row) {
+            $csv .= implode(",", array_map(fn($v) => '"' . str_replace('"', '""', $v) . '"', $row)) . "\n";
+        }
+
+        $filename = "occurrence_{$id}.csv";
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ]);
     }
 
     public function destroyFile($id, $fileId)

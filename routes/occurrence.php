@@ -9,5 +9,6 @@ Route::middleware('auth:sanctum')->prefix('occurrence')->group(function () {
     Route::put('/{id}', [OccurrenceController::class, 'update']);
     Route::delete('/{id}/file/{fileId}', [OccurrenceController::class, 'destroyFile']);
     Route::delete('/{id}', [OccurrenceController::class, 'destroy']);
+    Route::get('/{id}/export/csv', [OccurrenceController::class, 'exportCsv']);
     Route::get('/{id}', [OccurrenceController::class, 'show']);
 });

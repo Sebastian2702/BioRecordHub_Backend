@@ -33,6 +33,15 @@ class StoreOccurrenceRequest extends FormRequest
             'decimal_longitude' => 'nullable|numeric|between:-180,180',
             'basis_of_record'   => 'nullable|string|max:255',
             'contributors'      => 'required|string',
+            'institution_code' => 'required|string',
+            'collection_code' => 'required|string',
+            'catalog_number' => 'required|string',
+            'recorded_by' => 'required|string',
+            'identified_by' => 'required|string',
+            'date_identified' => 'required|string',
+            'occurrence_remarks'  => 'required|string',
+            'language'  => 'required|string',
+            'license'  => 'required|string',
 
 
             'fields.*.id'       => 'required|exists:occurrence_fields,id',
