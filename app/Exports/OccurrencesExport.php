@@ -9,11 +9,16 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class OccurrencesExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected $occurrences;
     protected $fieldNames;
 
-    public function __construct()
+    public function __construct(array $ids)
     {
-        $allOccurrences = Occurrence::with('fields')->get();
+        // Eager load nomenclature, project, and fields
+        $allOccurrences = Occurrence::with(['fields', 'nomenclature', 'project'])
+            ->whereIn('id', $ids)
+            ->get();
+
         $this->fieldNames = $allOccurrences
             ->flatMap(function ($occurrence) {
                 return $occurrence->fields->pluck('name');
@@ -35,7 +40,9 @@ class OccurrencesExport implements FromCollection, WithHeadings, WithMapping
         $row = [
             $occurrence->id,
             $occurrence->scientific_name,
-            $occurrence->evenet_date,
+            $occurrence->nomenclature->species,
+            $occurrence->project->title,
+            $occurrence->event_date,
             $occurrence->decimal_latitude,
             $occurrence->decimal_longitude,
             $occurrence->country,
@@ -65,6 +72,8 @@ class OccurrencesExport implements FromCollection, WithHeadings, WithMapping
         $baseHeadings = [
             'Occurrence ID',
             'Scientific Name',
+            'Species',
+            'Project Title',
             'Event Date',
             'Latitude',
             'Longitude',
