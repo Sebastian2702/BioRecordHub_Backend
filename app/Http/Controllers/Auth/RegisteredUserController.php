@@ -30,7 +30,9 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->string('password')),
-            'role' => 'user', // Default role
+            'role' => 'user',
+            'reset_password_token' => $request->name . uniqid(),
+            'first_login' => true,
         ]);
 
         event(new Registered($user));
