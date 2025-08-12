@@ -6,7 +6,6 @@ use App\Models\Occurrence;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Illuminate\Support\Facades\Log;
 
 class SingleOccurrenceExport implements FromCollection, WithHeadings, WithMapping
 {
@@ -15,9 +14,15 @@ class SingleOccurrenceExport implements FromCollection, WithHeadings, WithMappin
 
     public function __construct($occurrenceId)
     {
-        $this->occurrence = Occurrence::with('fields')->findOrFail($occurrenceId);
+        // Eager load nomenclature and project
+        $this->occurrence = Occurrence::with(['fields', 'nomenclature', 'project'])
+            ->findOrFail($occurrenceId);
 
-        $this->fieldNames = $this->occurrence->fields->pluck('name')->unique()->values()->toArray();
+        $this->fieldNames = $this->occurrence->fields
+            ->pluck('name')
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     public function collection()
@@ -30,6 +35,8 @@ class SingleOccurrenceExport implements FromCollection, WithHeadings, WithMappin
         $row = [
             $occurrence->id,
             $occurrence->scientific_name,
+            $occurrence->nomenclature->species,
+            $occurrence->project->title,
             $occurrence->event_date,
             $occurrence->decimal_latitude,
             $occurrence->decimal_longitude,
@@ -60,6 +67,8 @@ class SingleOccurrenceExport implements FromCollection, WithHeadings, WithMappin
         $baseHeadings = [
             'Occurrence ID',
             'Scientific Name',
+            'Species',
+            'Project Title',
             'Event Date',
             'Latitude',
             'Longitude',

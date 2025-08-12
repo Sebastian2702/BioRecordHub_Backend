@@ -65,7 +65,6 @@ class OccurrenceController extends Controller
             $request->merge(['fields' => $decodedFields]);
         }
         $validated = $request->validated();
-        Log::info($validated);
 
         if ($request->hasFile('files')) {
             $allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf', 'xlsx', 'docx'];
