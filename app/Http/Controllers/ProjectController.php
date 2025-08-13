@@ -123,6 +123,12 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project not found'], 404);
         }
 
+        if ($project->occurrences()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete: This project is still referenced by one or more occurrences.'
+            ], 400);
+        }
+
         $project->files()->delete();
         $folderPath = storage_path("app/public/projects_files/{$project->id}");
         if (file_exists($folderPath)) {
