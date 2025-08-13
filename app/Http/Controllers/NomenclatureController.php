@@ -230,6 +230,10 @@ class NomenclatureController extends Controller
             return response()->json(['message' => 'Nomenclature not found'], 404);
         }
 
+        if($nomenclature->occurrences()->exists()) {
+            return response()->json(['message' => 'Cannot delete nomenclature with associated occurrences'], 400);
+        }
+
         $nomenclature->bibliographies()->detach();
 
         $nomenclature->images()->delete();

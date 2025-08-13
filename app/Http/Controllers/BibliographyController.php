@@ -184,6 +184,12 @@ class BibliographyController extends Controller
             ], 400);
         }
 
+        if ($biblio->occurrences()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete: This bibliography is still referenced by one or more occurrences.'
+            ], 400);
+        }
+
         if (!empty($biblio->file)) {
             $filePath = storage_path('app/public/bibliographies/' . $biblio->file);
             if (file_exists($filePath)) {
