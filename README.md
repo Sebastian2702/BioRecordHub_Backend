@@ -56,13 +56,19 @@ php artisan key:generate
 5. Configuration, Edit the .env file with your environment settings:
 
 DB_CONNECTION= database_name
+
 DB_HOST= database_ip
+
 DB_PORT= database_port
+
 DB_DATABASE=your_database
+
 DB_USERNAME=your_user
+
 DB_PASSWORD=your_password
 
 FRONTEND_URL= your_frontend_url
+
 SANCTUM_STATEFUL_DOMAINS= your_frontend_url
 
 6. Storage, Make the storage folder publicly accessible, run this command:
