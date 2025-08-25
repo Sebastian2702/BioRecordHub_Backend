@@ -6,9 +6,7 @@ use App\Models\Bibliography;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreBibliographyRequest;
 use Illuminate\Support\Facades\Validator;
-use ZipArchive;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+
 
 class BibliographyController extends Controller
 {
@@ -57,19 +55,13 @@ class BibliographyController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $originalFilename = $file->getClientOriginalName();
-            $zipFilename =  $validated['key'] . '.zip';
-            $zipPath = storage_path("app/public/bibliographies/{$zipFilename}");
 
-            $zip = new ZipArchive;
-            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
-                $zip->addFromString($originalFilename, file_get_contents($file->getRealPath()));
-                $zip->close();
-            } else {
-                return response()->json(['error' => 'Failed to create zip file.'], 500);
-            }
+            $extension = $file->getClientOriginalExtension();
+            $filename  = $validated['key'] . '.' . $extension;
 
-            $validated['file'] = $zipFilename;
+            $path = $file->storeAs('bibliographies', $filename, 'public');
+
+            $validated['file'] = $filename;
         }
 
         $biblio = Bibliography::create($validated);
@@ -148,19 +140,15 @@ class BibliographyController extends Controller
 
         if ($request->hasFile('file') && !$biblio->file) {
             $file = $request->file('file');
-            $originalFilename = $file->getClientOriginalName();
-            $zipFilename =  $validated['key'] . '.zip';
-            $zipPath = storage_path("app/public/bibliographies/{$zipFilename}");
 
-            $zip = new ZipArchive;
-            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
-                $zip->addFromString($originalFilename, file_get_contents($file->getRealPath()));
-                $zip->close();
-            } else {
-                return response()->json(['error' => 'Failed to create zip file.'], 500);
-            }
-            $validated['file'] = $zipFilename;
+            $extension = $file->getClientOriginalExtension();
+            $filename  = $validated['key'] . '.' . $extension;
+
+            $path = $file->storeAs('bibliographies', $filename, 'public');
+
+            $validated['file'] = $filename;
         }
+
 
         $biblio->update($validated);
 
@@ -184,11 +172,6 @@ class BibliographyController extends Controller
             ], 400);
         }
 
-        if ($biblio->occurrences()->exists()) {
-            return response()->json([
-                'message' => 'Cannot delete: This bibliography is still referenced by one or more occurrences.'
-            ], 400);
-        }
 
         if (!empty($biblio->file)) {
             $filePath = storage_path('app/public/bibliographies/' . $biblio->file);
