@@ -55,7 +55,7 @@ php artisan key:generate
 
 5. Configuration, Edit the .env file with your environment settings:
 
-DB_CONNECTION= database_name
+DB_CONNECTION= biorecordhub
 
 DB_HOST= database_ip
 
